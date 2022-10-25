@@ -9,9 +9,12 @@ import { LocalStorageService } from "../../service/local-storage.service";
     selector: 'app-sentiment-page',
     template: `
         <div class="outer">
-            <h2>{{ companyName$ | async }} ({{ symbol$ | async }})</h2>
-            <app-sentiment-detail [sentiments$]="sentiments$"></app-sentiment-detail>
-            <button type="button" [routerLink]="''" >
+            <div [style.border]="'1px solid black'" 
+                 [style.padding]="'1rem'" [style.margin-bottom]="'1rem'">
+                <h2>{{ companyName$ | async }} ({{ symbol$ | async }})</h2>
+                <app-sentiment-detail [sentiments$]="sentiments$"></app-sentiment-detail>
+            </div>
+            <button type="button" [routerLink]="''" id="backBtn" >
                 🡰 Back to list of stocks
             </button>
         </div>

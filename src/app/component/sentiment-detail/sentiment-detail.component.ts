@@ -9,12 +9,21 @@ import { Observable } from "rxjs";
             <ng-container *ngFor="let item of sentiments$ | async">
                 <div class="inner">
                     <div>
-                        <p>{{ getMonthString(item.month) + " " + item.year }}</p>
-                        <p>Change: {{ item.change }}</p>
-                        <p>MSPR: {{ item.mspr }}</p>
+                        <div>
+                            <b>{{ getMonthString(item.month) | uppercase }}</b>
+                            {{ " " + item.year }}
+                        </div>
+                        <p><b>Change: </b>
+                            {{ item.change > 0 ? ("+" + item.change) : item.change }}
+                        </p>
+                        <p><b>MSPR: </b>{{ item.mspr }}</p>
                     </div>
                     <div>
                         <span [style.font-size]="'3.5rem'"
+                              [style.display]="'flex'"
+                              [style.height]="'100%'"
+                              [style.justify-content]="'center'"
+                              [style.align-items]="'center'"
                               [style.color]="item.change < 0 ? 'red' : 'green'">
                             {{ item.change < 0 ? "🡇" : "🡅" }}
                         </span>

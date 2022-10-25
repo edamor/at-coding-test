@@ -41,7 +41,7 @@ export class LocalStorageService {
     }
 
     getCompanyName(symbol: string): string {
-        return this.getSymbols().find(s => s.startsWith(symbol))?.split(":")[0] || "";
+        return this.getSymbols().find(s => s.startsWith(symbol))?.split(":")[1] || "";
     }
 
     get symbols$(): Observable<StoredItem[]> {
