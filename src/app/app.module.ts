@@ -8,13 +8,17 @@ import { HttpClientModule } from "@angular/common/http";
 import { ReactiveFormsModule } from "@angular/forms";
 import { StockInformationComponent } from './component/stock-information/stock-information.component';
 import { HomePageComponent } from './page/home-page/home-page.component';
+import { SentimentPageComponent } from './page/sentiment-page/sentiment-page.component';
+import { SentimentDetailComponent } from './component/sentiment-detail/sentiment-detail.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         StockInputComponent,
         StockInformationComponent,
-        HomePageComponent
+        HomePageComponent,
+        SentimentPageComponent,
+        SentimentDetailComponent
     ],
     imports: [
         BrowserModule,

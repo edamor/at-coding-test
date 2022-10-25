@@ -37,3 +37,21 @@ export interface FinnhubSymbolDetail {
     symbol: string;
     type: string;
 }
+
+export interface FinnhubSentimentLookupResponse {
+    symbol: string;
+    data: MonthlySentiment[];
+}
+
+export interface MonthlySentiment {
+    change: number;
+    month: number;
+    mspr: number;
+    symbol: string;
+    year: number;
+}
+
+export interface StoredItem {
+    symbol: string;
+    companyName: string;
+}
