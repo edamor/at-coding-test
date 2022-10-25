@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { LocalStorageService } from "../../service/local-storage.service";
 import { FormControl, Validators } from "@angular/forms";
 import { FinnhubService } from "../../service/finnhub.service";
@@ -11,6 +11,7 @@ import { FinnhubService } from "../../service/finnhub.service";
             <input id="stockInput"
                    type="text"
                    (input)="transformInput()"
+                   (keydown.enter)="saveSymbol()"
                    [formControl]="stockInputControl"/>
             <button id="trackBtn"
                     type="button"
@@ -22,7 +23,7 @@ import { FinnhubService } from "../../service/finnhub.service";
     `,
     styles: ['div { border: 1px solid black; padding: 0.5rem; }']
 })
-export class StockInputComponent implements OnInit {
+export class StockInputComponent {
 
     readonly stockInputControl = new FormControl("",
         [Validators.required, Validators.minLength(1), Validators.maxLength(5)]);
@@ -31,18 +32,21 @@ export class StockInputComponent implements OnInit {
                 private finnhubService: FinnhubService) {
     }
 
-    ngOnInit(): void {
-    }
-
     saveSymbol(): void {
 
         if (this.stockInputControl.invalid) return;
 
-        this.finnhubService
-            .fetchSymbolDetail(this.stockInputControl.value!)
-            .subscribe(detail => {
-                this.storageService.addSymbol(detail.symbol, detail.description);
-            })
+        const symbol = this.stockInputControl.value!;
+
+        if (this.storageService.has(symbol)) {
+            this.stockInputControl.reset();
+            return;
+        }
+
+        this.finnhubService.fetchSymbolDetail(symbol).subscribe(detail => {
+            this.storageService.set(detail.symbol,detail.description);
+        });
+
         this.stockInputControl.reset();
     }
 

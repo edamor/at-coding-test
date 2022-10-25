@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject } from "rxjs";
+import { BehaviorSubject, map, Observable } from "rxjs";
+import { StoredItem } from "../models";
 
 @Injectable({
     providedIn: 'root'
@@ -8,37 +9,50 @@ export class LocalStorageService {
 
     private readonly STORAGE_KEY = "symbols";
 
-    private readonly _symbols$ = new ReplaySubject<[string, string]>()
+    private readonly _symbols$ = new BehaviorSubject<string[]>([])
 
     constructor() {
+        this._symbols$.next(this.getSymbols());
     }
 
-    get symbols$(): Observable<[string, string]> {
-        const symbols = this.getSymbols();
-        symbols.forEach((value, key) => {
-            this._symbols$.next([key, value]);
-        })
-        return this._symbols$.asObservable();
-    }
+    set(symbol: string, companyName: string): void {
 
-    addSymbol(symbol: string, companyName: string): void {
+        if (this.has(symbol)) return;
+
         let symbols = this.getSymbols();
+        let newSymbol = `${symbol}:${companyName}`
 
-        if (symbols.has(symbol)) return;
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify([newSymbol, ...symbols]));
 
-        symbols.set(symbol, companyName);
-
-        const objectified = Object.fromEntries(symbols);
-
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(objectified));
-
-        this._symbols$.next([symbol, companyName]);
+        this._symbols$.next([newSymbol, ...symbols]);
     }
 
-    private getSymbols(): Map<string, string> {
-        const optional = JSON.parse(localStorage.getItem(this.STORAGE_KEY)!);
+    remove(symbol: string): void {
 
-        return optional === null ?  new Map() : new Map(Object.entries(optional));
+        let symbols = this.getSymbols().filter(s => !s.startsWith(symbol));
+
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(symbols));
+
+        this._symbols$.next(symbols)
     }
 
+    has(symbol: string): boolean {
+        return this.getSymbols().findIndex(s => s.startsWith(symbol)) > -1;
+    }
+
+    getCompanyName(symbol: string): string {
+        return this.getSymbols().find(s => s.startsWith(symbol))?.split(":")[0] || "";
+    }
+
+    get symbols$(): Observable<StoredItem[]> {
+        return this._symbols$.asObservable().pipe(
+            map(items => items
+                .map(s => s.split(":"))
+                .map(([symbol, companyName]) => ({ symbol, companyName})))
+        );
+    }
+
+    private getSymbols(): string[] {
+        return JSON.parse(localStorage.getItem(this.STORAGE_KEY)!) ?? [];
+    }
 }

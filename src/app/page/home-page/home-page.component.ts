@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, concatMap, map, Observable } from "rxjs";
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, concatMap, from, map, mergeMap, Observable, Subject, takeUntil, toArray } from "rxjs";
 import { StockQuote } from "../../models";
 import { LocalStorageService } from "../../service/local-storage.service";
 import { FinnhubService } from "../../service/finnhub.service";
@@ -13,13 +13,14 @@ import { FinnhubService } from "../../service/finnhub.service";
                 <app-stock-information [stock]="stock"></app-stock-information>
             </ng-container>
         </div>
-        <router-outlet></router-outlet>
     `,
     styles: []
 })
-export class HomePageComponent implements OnInit {
+export class HomePageComponent implements OnInit, OnDestroy {
 
     private _stocks$ = new BehaviorSubject<StockQuote[]>([]);
+
+    private _subs$ = new Subject();
 
     constructor(private storageService: LocalStorageService,
                 private finnhubService: FinnhubService) {
@@ -28,15 +29,23 @@ export class HomePageComponent implements OnInit {
     ngOnInit(): void {
 
         this.storageService.symbols$.pipe(
-            concatMap(([symbol, companyName]) => this.finnhubService
-                .fetchQuote(symbol).pipe(
-                    map(quote => new StockQuote(symbol, companyName, quote))
+            takeUntil(this._subs$),
+            mergeMap(items => from(items).pipe(
+                    concatMap(item => this.finnhubService.fetchQuote(item.symbol).pipe(
+                        map(quote => new StockQuote(item.symbol, item.companyName, quote))
+                    )),
+                    toArray()
                 )
             )
-        ).subscribe(stockQuote => {
-            let stocks = this._stocks$.value;
-            this._stocks$.next([...stocks, stockQuote])
+        ).subscribe(stocks => {
+            this._stocks$.next(stocks)
         });
+
+    }
+
+    ngOnDestroy(): void {
+        this._subs$.next({});
+        this._subs$.complete();
     }
 
     get stocks$(): Observable<StockQuote[]> {
